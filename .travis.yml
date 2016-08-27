@@ -1,0 +1,21 @@
+dist: trusty
+sudo: required
+
+language: python
+
+python:
+ - 2.7
+ - 3.3
+ - 3.4
+ - 3.5
+
+install: "pip install -r requirements.txt"
+
+script: "python setup.py test"
+
+addons:
+  apt:
+    sources:
+      - sourceline: "deb http://gb.archive.ubuntu.com/ubuntu/ xenial main restricted"
+    packages:
+      - libxkbcommon-dev
