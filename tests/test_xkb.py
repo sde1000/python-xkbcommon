@@ -115,7 +115,6 @@ class TestContext(TestCase):
 
     def test_keymap_new_from_buffer(self):
         ctx = xkb.Context()
-        print("travis debug: {}".format(type(sample_keymap_bytes)))
         if six.PY2:
             typecode = b'b'
         else:
@@ -124,6 +123,10 @@ class TestContext(TestCase):
         km = ctx.keymap_new_from_buffer(test_data)
         self.assertIsNotNone(km)
         self.assertEqual(km.load_method, "buffer")
+        test_data.extend([0] * 10)
+        length = len(sample_keymap_bytes)
+        km = ctx.keymap_new_from_buffer(test_data, length=length)
+        self.assertIsNotNone(km)
 
 # This class makes use of the details of the sample keymap in
 # sample_keymap_string.

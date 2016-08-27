@@ -355,11 +355,11 @@ class Context(object):
         return Keymap(self, r, "string")
 
     def keymap_new_from_buffer(
-            self, buffer, format=lib.XKB_KEYMAP_FORMAT_TEXT_V1):
+            self, buffer, format=lib.XKB_KEYMAP_FORMAT_TEXT_V1, length=None):
         "Create a Keymap from a memory buffer."
         buf = ffi.from_buffer(buffer)
         r = lib.xkb_keymap_new_from_buffer(
-            self._context, buf, len(buf), format,
+            self._context, buf, length if length else len(buf), format,
             lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
         if r == ffi.NULL:
             raise XKBKeymapCreationFailure(
