@@ -143,17 +143,7 @@ class Context:
         context = lib.xkb_context_new(flags)
         if not context:
             raise XKBError("Couldn't create XKB context")
-        # This nasty hack is necessary to keep "lib" around long
-        # enough for us to use it to free the context while python is
-        # shutting down.  The obvious way of writing it works fine on
-        # python3; this version is necessary for compatibility with
-        # python2.
-        def free_context_closure():
-            saved_lib = lib
-            def free_context(obj):
-                saved_lib.xkb_context_unref(obj)
-            return free_context
-        self._context = ffi.gc(context, free_context_closure())
+        self._context = ffi.gc(context, lib.xkb_context_unref)
         self._log_fn = None
         # We keep a reference to the handle to keep it alive
         self._userdata = ffi.new_handle(self)
@@ -373,17 +363,7 @@ class Keymap:
         self.load_method = load_method
         self._context = context
 
-        # This nasty hack is necessary to keep "lib" around long
-        # enough for us to use it to free the context while python is
-        # shutting down.  The obvious way of writing it works fine on
-        # python3; this version is necessary for compatibility with
-        # python2.
-        def free_keymap_closure():
-            saved_lib = lib
-            def free_keymap(obj):
-                saved_lib.xkb_keymap_unref(obj)
-            return free_keymap
-        self._keymap = ffi.gc(pointer, free_keymap_closure())
+        self._keymap = ffi.gc(pointer, lib.xkb_keymap_unref)
         self._valid_keycodes = None
 
     def get_as_bytes(self, format=lib.XKB_KEYMAP_FORMAT_TEXT_V1):
@@ -655,12 +635,7 @@ class KeyboardState:
             raise XKBError("Couldn't create keyboard state")
         # Keep the keymap around to ensure it isn't collected too soon
         self.keymap = keymap
-        def free_state_closure():
-            saved_lib = lib
-            def free_state(obj):
-                saved_lib.xkb_state_unref(obj)
-            return free_state
-        self._state = ffi.gc(state, free_state_closure())
+        self._state = ffi.gc(state, lib.xkb_state_unref)
 
     def get_keymap(self):
         """Get the Keymap which a keyboard state object is using.
