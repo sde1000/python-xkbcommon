@@ -42,7 +42,7 @@ class XKBModifierDoesNotExist(XKBError):
     None.
     """
     def __init__(self, modifier_name):
-        super(XKBError, self).__init__(modifier_name)
+        super().__init__(modifier_name)
         self.modifier_name = modifier_name
 
 class XKBInvalidLayoutIndex(XKBError):
@@ -50,7 +50,7 @@ class XKBInvalidLayoutIndex(XKBError):
 
 class XKBLayoutDoesNotExist(XKBError):
     def __init__(self, index_name):
-        super(XKBError, self).__init__(index_name)
+        super().__init__(index_name)
         self.index_name = index_name
 
 class XKBInvalidLEDIndex(XKBError):
@@ -58,7 +58,7 @@ class XKBInvalidLEDIndex(XKBError):
 
 class XKBLEDDoesNotExist(XKBError):
     def __init__(self, led_name):
-        super(XKBError, self).__init__(led_name)
+        super().__init__(led_name)
         self.led_name = led_name
 
 # Internal helper for logging callback
