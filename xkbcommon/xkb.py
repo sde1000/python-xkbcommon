@@ -1,3 +1,4 @@
+import enum
 import mmap
 import functools
 
@@ -574,17 +575,16 @@ class Keymap:
         """
         return KeyboardState(self)
 
-# Enumeration xkb_key_direction
-class KeyDirection(int):
-    def __str__(self):
-        if self == lib.XKB_KEY_UP:
-            return "XKB_KEY_UP"
-        elif self == lib.XKB_KEY_DOWN:
-            return "XKB_KEY_DOWN"
-        return super(int, self).__str__()
 
-XKB_KEY_UP = KeyDirection(lib.XKB_KEY_UP)
-XKB_KEY_DOWN = KeyDirection(lib.XKB_KEY_DOWN)
+@enum.unique
+class KeyDirection(enum.IntEnum):
+    XKB_KEY_UP = lib.XKB_KEY_UP
+    XKB_KEY_DOWN = lib.XKB_KEY_DOWN
+
+
+XKB_KEY_UP = KeyDirection.XKB_KEY_UP
+XKB_KEY_DOWN = KeyDirection.XKB_KEY_DOWN
+
 
 class _BitEnum(int):
     _members = []
