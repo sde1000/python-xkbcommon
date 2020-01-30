@@ -1,7 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
-
-import six
 import mmap
 import functools
 
@@ -610,7 +606,6 @@ class KeyDirection(int):
 XKB_KEY_UP = KeyDirection(lib.XKB_KEY_UP)
 XKB_KEY_DOWN = KeyDirection(lib.XKB_KEY_DOWN)
 
-@six.python_2_unicode_compatible
 class _BitEnum(int):
     _members = []
     _mask = 0

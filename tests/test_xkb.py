@@ -1,11 +1,7 @@
 # NB these tests are intended to check whether the python bindings are
 # working, not whether libxkbcommon itself is working!
 
-from __future__ import unicode_literals
-from __future__ import print_function
-
 from unittest import TestCase
-import six
 
 from xkbcommon import xkb
 
@@ -115,11 +111,7 @@ class TestContext(TestCase):
 
     def test_keymap_new_from_buffer(self):
         ctx = xkb.Context()
-        if six.PY2:
-            typecode = b'b'
-        else:
-            typecode = 'b'
-        test_data = array.array(typecode, sample_keymap_bytes)
+        test_data = array.array('b', sample_keymap_bytes)
         km = ctx.keymap_new_from_buffer(test_data)
         self.assertIsNotNone(km)
         self.assertEqual(km.load_method, "buffer")

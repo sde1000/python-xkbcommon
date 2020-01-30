@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 # Defines sample_keymap_string and sample_keymap_bytes
 
 #                       Python 2 type    Python 3 type
