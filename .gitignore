@@ -6,3 +6,6 @@ __pycache__
 /*.egg-info
 /.eggs/
 _ffi*.so
+_ffi.c
+_ffi.o
+*.swp
