@@ -586,47 +586,31 @@ XKB_KEY_UP = KeyDirection.XKB_KEY_UP
 XKB_KEY_DOWN = KeyDirection.XKB_KEY_DOWN
 
 
-class _BitEnum(int):
-    _members = []
-    _mask = 0
-    def __str__(self):
-        l = [x for x in self._members if self & getattr(lib, x)]
-        extra = self & ~self._mask
-        if extra:
-            l.append(hex(extra))
-        return "|".join(l)
-    def __or__(self, a):
-        return type(self)(int(self) | a)
-
-class StateComponent(_BitEnum):
+@enum.unique
+class StateComponent(enum.IntFlag):
     "An integer corresponding to enum xkb_state_component"
-    _members = ["XKB_STATE_MODS_DEPRESSED",
-                "XKB_STATE_MODS_LATCHED",
-                "XKB_STATE_MODS_LOCKED",
-                "XKB_STATE_MODS_EFFECTIVE",
-                "XKB_STATE_LAYOUT_DEPRESSED",
-                "XKB_STATE_LAYOUT_LATCHED",
-                "XKB_STATE_LAYOUT_LOCKED",
-                "XKB_STATE_LAYOUT_EFFECTIVE",
-                "XKB_STATE_LEDS",
-    ]
-    _mask = functools.reduce(
-        lambda a, b: a | b, [getattr(lib, x) for x in _members], 0)
+    XKB_STATE_MODS_DEPRESSED = lib.XKB_STATE_MODS_DEPRESSED
+    XKB_STATE_MODS_LATCHED = lib.XKB_STATE_MODS_LATCHED
+    XKB_STATE_MODS_LOCKED = lib.XKB_STATE_MODS_LOCKED
+    XKB_STATE_MODS_EFFECTIVE = lib.XKB_STATE_MODS_EFFECTIVE
+    XKB_STATE_LAYOUT_DEPRESSED = lib.XKB_STATE_LAYOUT_DEPRESSED
+    XKB_STATE_LAYOUT_LATCHED = lib.XKB_STATE_LAYOUT_LATCHED
+    XKB_STATE_LAYOUT_LOCKED = lib.XKB_STATE_LAYOUT_LOCKED
+    XKB_STATE_LAYOUT_EFFECTIVE = lib.XKB_STATE_LAYOUT_EFFECTIVE
+    XKB_STATE_LEDS = lib.XKB_STATE_LEDS
 
-for _sc in StateComponent._members:
-    globals()[_sc] = StateComponent(getattr(lib, _sc))
+for _sc in StateComponent:
+    globals()[_sc.name] = _sc
 
-class StateMatch(_BitEnum):
+@enum.unique
+class StateMatch(enum.IntFlag):
     "An integer corresponding to enum xkb_state_match"
-    _members = ["XKB_STATE_MATCH_ANY",
-                "XKB_STATE_MATCH_ALL",
-                "XKB_STATE_MATCH_NON_EXCLUSIVE",
-    ]
-    _mask = functools.reduce(
-        lambda a, b: a | b, [getattr(lib, x) for x in _members], 0)
-    
-for _sc in StateMatch._members:
-    globals()[_sc] = StateMatch(getattr(lib, _sc))
+    XKB_STATE_MATCH_ANY = lib.XKB_STATE_MATCH_ANY
+    XKB_STATE_MATCH_ALL = lib.XKB_STATE_MATCH_ALL
+    XKB_STATE_MATCH_NON_EXCLUSIVE = lib.XKB_STATE_MATCH_NON_EXCLUSIVE
+
+for _sc in StateMatch:
+    globals()[_sc.name] = _sc
 
 class KeyboardState:
     def __init__(self, keymap):
