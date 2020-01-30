@@ -105,7 +105,7 @@ def keysym_to_string(keysym):
 
 # Library Context http://xkbcommon.org/doc/current/group__context.html
 
-class Context(object):
+class Context:
     """xkbcommon library context.
 
     Every keymap compilation request must have a context associated
@@ -362,7 +362,7 @@ class Context(object):
                 "xkb_keymap_new_from_buffer returned NULL")
         return Keymap(self, r, "buffer")
 
-class Keymap(object):
+class Keymap:
     """A keymap.
 
     Do not instantiate this object directly.  Instead, use the various
@@ -648,7 +648,7 @@ class StateMatch(_BitEnum):
 for _sc in StateMatch._members:
     globals()[_sc] = StateMatch(getattr(lib, _sc))
 
-class KeyboardState(object):
+class KeyboardState:
     def __init__(self, keymap):
         state = lib.xkb_state_new(keymap._keymap)
         if not state:
