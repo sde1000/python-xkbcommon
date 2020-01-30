@@ -27,5 +27,5 @@ setup(name='xkbcommon',
       test_suite='tests.test_xkb',
       setup_requires=["cffi>=1.5.0", "six"],
       install_requires=["cffi>=1.5.0", "six"],
-      cffi_modules=["ffi_build.py:ffibuilder"],
+      cffi_modules=["xkbcommon/ffi_build.py:ffibuilder"],
 )
