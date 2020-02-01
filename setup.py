@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='xkbcommon',
-      version='0.1',
+      version='0.2',
       description='Bindings for libxkbcommon using cffi',
       long_description=readme(),
       classifiers=[
