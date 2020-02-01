@@ -290,15 +290,15 @@ class Context:
         """
         names = ffi.new("struct xkb_rule_names *")
         if rules:
-            names.rules = ffi.new("char[]", rules)
+            names.rules = rules.encode()
         if model:
-            names.model = ffi.new("char[]", model)
+            names.model = model.encode()
         if layout:
-            names.layout = ffi.new("char[]", layout)
+            names.layout = layout.encode()
         if variant:
-            names.variant = ffi.new("char[]", variant)
+            names.variant = variant.encode()
         if options:
-            names.options = ffi.new("char[]", options)
+            names.options = options.encode()
         r = lib.xkb_keymap_new_from_names(
             self._context, names, lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
         if r == ffi.NULL:
@@ -316,8 +316,12 @@ class Context:
         try:
             fn = file.fileno()
         except:
-            fn = None
-        if fn:
+            load_method = "read_file"
+            keymap = file.read()
+            r = lib.xkb_keymap_new_from_string(
+                self._context, keymap, format,
+                lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
+        else:
             load_method = "mmap_file"
             mm = mmap.mmap(fn, 0)
             buf = ffi.from_buffer(mm)
@@ -326,13 +330,7 @@ class Context:
                 lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
             del buf
             mm.close()
-        else:
-            load_method = "read_file"
-            keymap = file.read()
-            buf = ffi.new("char[]", keymap)
-            r = lib.xkb_keymap_new_from_string(
-                self._context, buf, format,
-                lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
+
         if r == ffi.NULL:
             raise XKBKeymapCreationFailure(
                 "xkb_keymap_new_from_buffer or xkb_keymap_new_from_string "
@@ -342,9 +340,8 @@ class Context:
     def keymap_new_from_string(
             self, string, format=lib.XKB_KEYMAP_FORMAT_TEXT_V1):
         "Create a Keymap from a keymap string."
-        buf = ffi.new("char[]", string.encode("ascii"))
         r = lib.xkb_keymap_new_from_string(
-            self._context, buf, format, lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
+            self._context, string.encode("ascii"), format, lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
         if r == ffi.NULL:
             raise XKBKeymapCreationFailure(
                 "xkb_keymap_new_from_string returned NULL")
@@ -450,8 +447,7 @@ class Keymap:
         Returns the index.  If no modifier with this name exists,
         raises XKBModifierDoesNotExist.
         """
-        r = lib.xkb_keymap_mod_get_index(
-            self._keymap, ffi.new("char []", name.encode('ascii')))
+        r = lib.xkb_keymap_mod_get_index(self._keymap, name.encode('ascii'))
         if r == lib.XKB_MOD_INVALID:
             raise XKBModifierDoesNotExist(name)
         return r
@@ -480,8 +476,7 @@ class Keymap:
         XKBLayoutDoesNotExist. If more than one layout in the keymap
         has this name, returns the lowest index among them.
         """
-        r = lib.xkb_keymap_layout_get_index(
-            self._keymap, ffi.new("char []", name.encode('ascii')))
+        r = lib.xkb_keymap_layout_get_index(self._keymap, name.encode('ascii'))
         if r == lib.XKB_LAYOUT_INVALID:
             raise XKBLayoutDoesNotExist(name)
         return r
@@ -513,8 +508,7 @@ class Keymap:
         Returns the index. If no LED with this name exists, returns
         lib.XKB_LED_INVALID.
         """
-        r = lib.xkb_keymap_led_get_index(
-            self._keymap, ffi.new("char []", name.encode('ascii')))
+        r = lib.xkb_keymap_led_get_index(self._keymap, name.encode('ascii'))
         if r == lib.XKB_LED_INVALID:
             raise XKBLEDDoesNotExist(name)
         return r
@@ -828,8 +822,7 @@ class KeyboardState:
         If the modifier name does not exist in the keymap, raises
         XKBModifierDoesNotExist.
         """
-        buf = ffi.new("char []", name.encode('ascii'))
-        r = lib.xkb_state_mod_name_is_active(self._state, buf, type)
+        r = lib.xkb_state_mod_name_is_active(self._state, name.encode(), type)
         if r == -1:
             raise XKBModifierDoesNotExist(name)
         return r == 1
@@ -850,9 +843,7 @@ class KeyboardState:
         not.  If any of the modifier names do not exist, raises
         XKBModifierDoesNotExist(None).
         """
-        args = []
-        for n in names:
-            args.append(ffi.new("char []", n.encode('ascii')))
+        args = [ffi.new("char []", n.encode('ascii')) for n in names]
         args.append(ffi.NULL)
         r = lib.xkb_state_mod_names_are_active(self._state, type, match, *args)
         if r == -1:
@@ -933,8 +924,7 @@ class KeyboardState:
         If multiple layouts in the keymap have this name, the one with
         the lowest index is tested.
         """
-        buf = ffi.new("char []", name.encode('ascii'))
-        r = lib.xkb_state_layout_name_is_active(self._state, buf, type)
+        r = lib.xkb_state_layout_name_is_active(self._state, name.encode(), type)
         if r == -1:
             raise XKBLayoutDoesNotExist(name)
         return r == 1
@@ -958,8 +948,7 @@ class KeyboardState:
         LED with this name exists in the keymap, raises
         XKBLEDDoesNotExist.
         """
-        buf = ffi.new("char []", name.encode('ascii'))
-        r = lib.xkb_state_led_name_is_active(self._state, buf)
+        r = lib.xkb_state_led_name_is_active(self._state, name.encode('ascii'))
         if r == -1:
             raise XKBLEDDoesNotExist(name)
         return r == 1
