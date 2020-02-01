@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from setuptools import setup
 
 def readme():
@@ -13,8 +11,9 @@ setup(name='xkbcommon',
       classifiers=[
           'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: MIT License',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
           'Topic :: Software Development :: Libraries',
           'Intended Audience :: Developers',
       ],
@@ -25,7 +24,7 @@ setup(name='xkbcommon',
       packages=['xkbcommon'],
       zip_safe=True,
       test_suite='tests.test_xkb',
-      setup_requires=["cffi>=1.5.0", "six"],
-      install_requires=["cffi>=1.5.0", "six"],
+      setup_requires=["cffi>=1.5.0"],
+      install_requires=["cffi>=1.5.0"],
       cffi_modules=["xkbcommon/ffi_build.py:ffibuilder"],
 )

@@ -1,11 +1,7 @@
 # NB these tests are intended to check whether the python bindings are
 # working, not whether libxkbcommon itself is working!
 
-from __future__ import unicode_literals
-from __future__ import print_function
-
 from unittest import TestCase
-import six
 
 from xkbcommon import xkb
 
@@ -115,11 +111,7 @@ class TestContext(TestCase):
 
     def test_keymap_new_from_buffer(self):
         ctx = xkb.Context()
-        if six.PY2:
-            typecode = b'b'
-        else:
-            typecode = 'b'
-        test_data = array.array(typecode, sample_keymap_bytes)
+        test_data = array.array('b', sample_keymap_bytes)
         km = ctx.keymap_new_from_buffer(test_data)
         self.assertIsNotNone(km)
         self.assertEqual(km.load_method, "buffer")
@@ -229,16 +221,18 @@ class TestBitEnum(TestCase):
         b = xkb.XKB_STATE_MODS_LATCHED
         self.assertIsInstance(a | b, xkb.StateComponent)
         self.assertEqual(str(a | b),
-                         "XKB_STATE_MODS_DEPRESSED|XKB_STATE_MODS_LATCHED")
-        c = a | b | 0xff000000
-        self.assertEqual(str(c), str(a | b) + "|0xff000000")
+                         "StateComponent.XKB_STATE_MODS_LATCHED|XKB_STATE_MODS_DEPRESSED")
+        c = a | b | 0x1000000
+        self.assertEqual(str(c),
+                         "StateComponent.16777216|XKB_STATE_MODS_LATCHED|XKB_STATE_MODS_DEPRESSED")
 
     def test_StateMatch(self):
         self.assertEqual(
             str(xkb.XKB_STATE_MATCH_ANY|xkb.XKB_STATE_MATCH_ALL
                 |xkb.XKB_STATE_MATCH_NON_EXCLUSIVE),
-            "XKB_STATE_MATCH_ANY|XKB_STATE_MATCH_ALL"
-            "|XKB_STATE_MATCH_NON_EXCLUSIVE")
+            "StateMatch.XKB_STATE_MATCH_NON_EXCLUSIVE"
+            "|XKB_STATE_MATCH_ALL"
+            "|XKB_STATE_MATCH_ANY")
 
 class TestKeyboardState(TestCase):
     capslock = 66
@@ -265,14 +259,16 @@ class TestKeyboardState(TestCase):
         keydown = state.update_key(self.capslock, xkb.XKB_KEY_DOWN)
         self.assertEqual(
             str(keydown),
-            "XKB_STATE_MODS_DEPRESSED|XKB_STATE_MODS_LOCKED|"
-            "XKB_STATE_MODS_EFFECTIVE|XKB_STATE_LEDS")
+            "StateComponent.XKB_STATE_LEDS"
+            "|XKB_STATE_MODS_EFFECTIVE"
+            "|XKB_STATE_MODS_LOCKED"
+            "|XKB_STATE_MODS_DEPRESSED")
         self.assertIsInstance(keydown, xkb.StateComponent)
         self.assertIsInstance(keydown, int)
         keyup = state.update_key(self.capslock, xkb.XKB_KEY_UP)
         self.assertEqual(
             str(keyup),
-            "XKB_STATE_MODS_DEPRESSED")
+            "StateComponent.XKB_STATE_MODS_DEPRESSED")
         self.assertEqual(
             state.mod_name_is_active("Lock", xkb.XKB_STATE_MODS_LOCKED),
             True)
@@ -302,9 +298,9 @@ class TestKeyboardState(TestCase):
             depressed_layout, latched_layout, locked_layout)
         self.assertEqual(
             str(r),
-            "XKB_STATE_MODS_LOCKED"
+            "StateComponent.XKB_STATE_LEDS"
             "|XKB_STATE_MODS_EFFECTIVE"
-            "|XKB_STATE_LEDS")
+            "|XKB_STATE_MODS_LOCKED")
         self.assertEqual(
             slave_state.mod_name_is_active("Lock", xkb.XKB_STATE_MODS_LOCKED),
             True)

@@ -1,11 +1,17 @@
-from __future__ import absolute_import
-from __future__ import print_function
-
-import six
+import enum
 import mmap
 import functools
 
 from xkbcommon._ffi import ffi, lib
+
+class _keepref:
+    """Function wrapper that keeps a reference to another object."""
+    def __init__(self, ref, func):
+        self.ref = ref
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        self.func(*args, **kwargs)
 
 class XKBError(Exception):
     """Base for all XKB exceptions"""
@@ -45,7 +51,7 @@ class XKBModifierDoesNotExist(XKBError):
     None.
     """
     def __init__(self, modifier_name):
-        super(XKBError, self).__init__(modifier_name)
+        super().__init__(modifier_name)
         self.modifier_name = modifier_name
 
 class XKBInvalidLayoutIndex(XKBError):
@@ -53,7 +59,7 @@ class XKBInvalidLayoutIndex(XKBError):
 
 class XKBLayoutDoesNotExist(XKBError):
     def __init__(self, index_name):
-        super(XKBError, self).__init__(index_name)
+        super().__init__(index_name)
         self.index_name = index_name
 
 class XKBInvalidLEDIndex(XKBError):
@@ -61,7 +67,7 @@ class XKBInvalidLEDIndex(XKBError):
 
 class XKBLEDDoesNotExist(XKBError):
     def __init__(self, led_name):
-        super(XKBError, self).__init__(led_name)
+        super().__init__(led_name)
         self.led_name = led_name
 
 # Internal helper for logging callback
@@ -109,7 +115,7 @@ def keysym_to_string(keysym):
 
 # Library Context http://xkbcommon.org/doc/current/group__context.html
 
-class Context(object):
+class Context:
     """xkbcommon library context.
 
     Every keymap compilation request must have a context associated
@@ -147,17 +153,7 @@ class Context(object):
         context = lib.xkb_context_new(flags)
         if not context:
             raise XKBError("Couldn't create XKB context")
-        # This nasty hack is necessary to keep "lib" around long
-        # enough for us to use it to free the context while python is
-        # shutting down.  The obvious way of writing it works fine on
-        # python3; this version is necessary for compatibility with
-        # python2.
-        def free_context_closure():
-            saved_lib = lib
-            def free_context(obj):
-                saved_lib.xkb_context_unref(obj)
-            return free_context
-        self._context = ffi.gc(context, free_context_closure())
+        self._context = ffi.gc(context, _keepref(lib, lib.xkb_context_unref))
         self._log_fn = None
         # We keep a reference to the handle to keep it alive
         self._userdata = ffi.new_handle(self)
@@ -366,7 +362,7 @@ class Context(object):
                 "xkb_keymap_new_from_buffer returned NULL")
         return Keymap(self, r, "buffer")
 
-class Keymap(object):
+class Keymap:
     """A keymap.
 
     Do not instantiate this object directly.  Instead, use the various
@@ -377,17 +373,7 @@ class Keymap(object):
         self.load_method = load_method
         self._context = context
 
-        # This nasty hack is necessary to keep "lib" around long
-        # enough for us to use it to free the context while python is
-        # shutting down.  The obvious way of writing it works fine on
-        # python3; this version is necessary for compatibility with
-        # python2.
-        def free_keymap_closure():
-            saved_lib = lib
-            def free_keymap(obj):
-                saved_lib.xkb_keymap_unref(obj)
-            return free_keymap
-        self._keymap = ffi.gc(pointer, free_keymap_closure())
+        self._keymap = ffi.gc(pointer, _keepref(lib, lib.xkb_keymap_unref))
         self._valid_keycodes = None
 
     def get_as_bytes(self, format=lib.XKB_KEYMAP_FORMAT_TEXT_V1):
@@ -598,74 +584,51 @@ class Keymap(object):
         """
         return KeyboardState(self)
 
-# Enumeration xkb_key_direction
-class KeyDirection(int):
-    def __str__(self):
-        if self == lib.XKB_KEY_UP:
-            return "XKB_KEY_UP"
-        elif self == lib.XKB_KEY_DOWN:
-            return "XKB_KEY_DOWN"
-        return super(int, self).__str__()
 
-XKB_KEY_UP = KeyDirection(lib.XKB_KEY_UP)
-XKB_KEY_DOWN = KeyDirection(lib.XKB_KEY_DOWN)
+@enum.unique
+class KeyDirection(enum.IntEnum):
+    XKB_KEY_UP = lib.XKB_KEY_UP
+    XKB_KEY_DOWN = lib.XKB_KEY_DOWN
 
-@six.python_2_unicode_compatible
-class _BitEnum(int):
-    _members = []
-    _mask = 0
-    def __str__(self):
-        l = [x for x in self._members if self & getattr(lib, x)]
-        extra = self & ~self._mask
-        if extra:
-            l.append(hex(extra))
-        return "|".join(l)
-    def __or__(self, a):
-        return type(self)(int(self) | a)
 
-class StateComponent(_BitEnum):
+XKB_KEY_UP = KeyDirection.XKB_KEY_UP
+XKB_KEY_DOWN = KeyDirection.XKB_KEY_DOWN
+
+
+@enum.unique
+class StateComponent(enum.IntFlag):
     "An integer corresponding to enum xkb_state_component"
-    _members = ["XKB_STATE_MODS_DEPRESSED",
-                "XKB_STATE_MODS_LATCHED",
-                "XKB_STATE_MODS_LOCKED",
-                "XKB_STATE_MODS_EFFECTIVE",
-                "XKB_STATE_LAYOUT_DEPRESSED",
-                "XKB_STATE_LAYOUT_LATCHED",
-                "XKB_STATE_LAYOUT_LOCKED",
-                "XKB_STATE_LAYOUT_EFFECTIVE",
-                "XKB_STATE_LEDS",
-    ]
-    _mask = functools.reduce(
-        lambda a, b: a | b, [getattr(lib, x) for x in _members], 0)
+    XKB_STATE_MODS_DEPRESSED = lib.XKB_STATE_MODS_DEPRESSED
+    XKB_STATE_MODS_LATCHED = lib.XKB_STATE_MODS_LATCHED
+    XKB_STATE_MODS_LOCKED = lib.XKB_STATE_MODS_LOCKED
+    XKB_STATE_MODS_EFFECTIVE = lib.XKB_STATE_MODS_EFFECTIVE
+    XKB_STATE_LAYOUT_DEPRESSED = lib.XKB_STATE_LAYOUT_DEPRESSED
+    XKB_STATE_LAYOUT_LATCHED = lib.XKB_STATE_LAYOUT_LATCHED
+    XKB_STATE_LAYOUT_LOCKED = lib.XKB_STATE_LAYOUT_LOCKED
+    XKB_STATE_LAYOUT_EFFECTIVE = lib.XKB_STATE_LAYOUT_EFFECTIVE
+    XKB_STATE_LEDS = lib.XKB_STATE_LEDS
 
-for _sc in StateComponent._members:
-    globals()[_sc] = StateComponent(getattr(lib, _sc))
+for _sc in StateComponent:
+    globals()[_sc.name] = _sc
 
-class StateMatch(_BitEnum):
+@enum.unique
+class StateMatch(enum.IntFlag):
     "An integer corresponding to enum xkb_state_match"
-    _members = ["XKB_STATE_MATCH_ANY",
-                "XKB_STATE_MATCH_ALL",
-                "XKB_STATE_MATCH_NON_EXCLUSIVE",
-    ]
-    _mask = functools.reduce(
-        lambda a, b: a | b, [getattr(lib, x) for x in _members], 0)
-    
-for _sc in StateMatch._members:
-    globals()[_sc] = StateMatch(getattr(lib, _sc))
+    XKB_STATE_MATCH_ANY = lib.XKB_STATE_MATCH_ANY
+    XKB_STATE_MATCH_ALL = lib.XKB_STATE_MATCH_ALL
+    XKB_STATE_MATCH_NON_EXCLUSIVE = lib.XKB_STATE_MATCH_NON_EXCLUSIVE
 
-class KeyboardState(object):
+for _sc in StateMatch:
+    globals()[_sc.name] = _sc
+
+class KeyboardState:
     def __init__(self, keymap):
         state = lib.xkb_state_new(keymap._keymap)
         if not state:
             raise XKBError("Couldn't create keyboard state")
         # Keep the keymap around to ensure it isn't collected too soon
         self.keymap = keymap
-        def free_state_closure():
-            saved_lib = lib
-            def free_state(obj):
-                saved_lib.xkb_state_unref(obj)
-            return free_state
-        self._state = ffi.gc(state, free_state_closure())
+        self._state = ffi.gc(state, _keepref(lib, lib.xkb_state_unref))
 
     def get_keymap(self):
         """Get the Keymap which a keyboard state object is using.
