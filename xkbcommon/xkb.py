@@ -4,6 +4,15 @@ import functools
 
 from xkbcommon._ffi import ffi, lib
 
+class _keepref:
+    """Function wrapper that keeps a reference to another object."""
+    def __init__(self, ref, func):
+        self.ref = ref
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        self.func(*args, **kwargs)
+
 class XKBError(Exception):
     """Base for all XKB exceptions"""
     pass
@@ -144,7 +153,7 @@ class Context:
         context = lib.xkb_context_new(flags)
         if not context:
             raise XKBError("Couldn't create XKB context")
-        self._context = ffi.gc(context, lib.xkb_context_unref)
+        self._context = ffi.gc(context, _keepref(lib, lib.xkb_context_unref))
         self._log_fn = None
         # We keep a reference to the handle to keep it alive
         self._userdata = ffi.new_handle(self)
@@ -364,7 +373,7 @@ class Keymap:
         self.load_method = load_method
         self._context = context
 
-        self._keymap = ffi.gc(pointer, lib.xkb_keymap_unref)
+        self._keymap = ffi.gc(pointer, _keepref(lib, lib.xkb_keymap_unref))
         self._valid_keycodes = None
 
     def get_as_bytes(self, format=lib.XKB_KEYMAP_FORMAT_TEXT_V1):
@@ -619,7 +628,7 @@ class KeyboardState:
             raise XKBError("Couldn't create keyboard state")
         # Keep the keymap around to ensure it isn't collected too soon
         self.keymap = keymap
-        self._state = ffi.gc(state, lib.xkb_state_unref)
+        self._state = ffi.gc(state, _keepref(lib, lib.xkb_state_unref))
 
     def get_keymap(self):
         """Get the Keymap which a keyboard state object is using.
