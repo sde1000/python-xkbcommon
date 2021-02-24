@@ -84,6 +84,15 @@ class TestContext(TestCase):
         km = ctx.keymap_new_from_string(sample_keymap_string)
         self.assertNotEqual(len(messages), 0)
 
+    def test_keymap_new_from_names_with_args(self):
+        # NB this test requires that suitable keymaps are installed
+        # wherever xkbcommon expects to find them
+        ctx = xkb.Context(no_environment_names=True)
+        km = ctx.keymap_new_from_names(
+            rules="evdev", model="pc105", layout="gb",
+            variant="dvorak", options="terminate:ctrl_alt_bksp")
+        self.assertIsNotNone(km)
+
     def test_keymap_new_from_names(self):
         ctx = xkb.Context()
         km = ctx.keymap_new_from_names()

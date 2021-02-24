@@ -288,19 +288,24 @@ class Context:
         Returns a Keymap compiled according to the RMLVO names, or
         None if the compilation failed.
         """
+        # CFFI memory management note:
+        # The C strings allocated below using ffi.new("char[]", ...)
+        # are automatically deallocated when there are no remaining
+        # python references to them. Being assigned to members of the
+        # 'names' struct does not count as a reference! We keep
+        # references to them in the 'keep_alive' list until after the
+        # call to xkb_keymap_new_from_names() to avoid problems with
+        # use-after-free.
         names = ffi.new("struct xkb_rule_names *")
-        if rules:
-            names.rules = rules.encode()
-        if model:
-            names.model = model.encode()
-        if layout:
-            names.layout = layout.encode()
-        if variant:
-            names.variant = variant.encode()
-        if options:
-            names.options = options.encode()
+        keep_alive = []
+        for x in ("rules", "model", "layout", "variant", "options"):
+            if locals()[x]:
+                c = ffi.new("char[]", locals()[x].encode())
+                setattr(names, x, c)
+                keep_alive.append(c)
         r = lib.xkb_keymap_new_from_names(
             self._context, names, lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
+        del keep_alive, names
         if r == ffi.NULL:
             raise XKBKeymapCreationFailure(
                 "xkb_keymap_new_from_names returned NULL")
