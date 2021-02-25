@@ -5,9 +5,10 @@ def readme():
         return f.read()
 
 setup(name='xkbcommon',
-      version='0.2',
+      version='0.3',
       description='Bindings for libxkbcommon using cffi',
       long_description=readme(),
+      long_description_content_type='text/x-rst',
       classifiers=[
           'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: MIT License',
