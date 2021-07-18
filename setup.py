@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='xkbcommon',
-      version='0.3',
+      version='0.4',
       description='Bindings for libxkbcommon using cffi',
       long_description=readme(),
       long_description_content_type='text/x-rst',
@@ -22,6 +22,7 @@ setup(name='xkbcommon',
       author='Stephen Early',
       author_email='steve@assorted.org.uk',
       license='MIT',
+      license_files=['LICENSE'],
       packages=['xkbcommon'],
       zip_safe=True,
       test_suite='tests.test_xkb',
