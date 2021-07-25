@@ -1,6 +1,5 @@
 import enum
 import mmap
-import functools
 
 from xkbcommon._ffi import ffi, lib
 
@@ -198,7 +197,7 @@ class Context:
     def num_include_paths(self):
         """Return the number of include paths"""
         return lib.xkb_context_num_include_paths(self._context)
-        
+
     def include_path(self):
         "Iterate over the include path."
         i = 0
@@ -391,7 +390,7 @@ class Keymap:
         kms = ffi.string(r)
         lib.free(r)
         return kms
-        
+
     def get_as_string(self, format=lib.XKB_KEYMAP_FORMAT_TEXT_V1):
         """Get the compiled keymap as a string.
 
@@ -574,7 +573,7 @@ class Keymap:
         return lib.xkb_keymap_key_repeats(self._keymap, key) == 1
 
     # Keyboard State http://xkbcommon.org/doc/current/group__state.html
-    
+
     def state_new(self):
         """Create a new keyboard state object.
 
@@ -667,7 +666,7 @@ class KeyboardState:
         """
         return StateComponent(
             lib.xkb_state_update_key(self._state, key, direction))
-                                        
+
     def update_mask(self, depressed_mods, latched_mods, locked_mods,
                     depressed_layout, latched_layout, locked_layout):
         """Update a keyboard state from a set of explicit masks.
@@ -719,7 +718,7 @@ class KeyboardState:
         for i in range(0, r):
             syms.append(syms_out[0][i])
         return syms
-        
+
     def key_get_string(self, key):
         """Get the Unicode/UTF-8 string obtained from pressing a particular
         key in a given keyboard state.
@@ -769,10 +768,10 @@ class KeyboardState:
         and layout.
 
         layout must be smaller than:
-        State.get_keymap().num_layouts_for_key(key) 
+        State.get_keymap().num_layouts_for_key(key)
 
         Usually layout would be:
-        State.key_get_layout(key) 
+        State.key_get_layout(key)
 
         Returns the shift level index. If the key or layout are
         invalid, raises XKBInvalidLayoutIndex.

@@ -75,8 +75,10 @@ class TestContext(TestCase):
 
     def test_set_log_handler(self):
         messages = []
+
         def handler(context, level, message):
             messages.append(message)
+
         ctx = xkb.Context()
         ctx.set_log_level(xkb.lib.XKB_LOG_LEVEL_DEBUG)
         ctx.set_log_verbosity(10)
@@ -237,8 +239,8 @@ class TestBitEnum(TestCase):
 
     def test_StateMatch(self):
         self.assertEqual(
-            str(xkb.XKB_STATE_MATCH_ANY|xkb.XKB_STATE_MATCH_ALL
-                |xkb.XKB_STATE_MATCH_NON_EXCLUSIVE),
+            str(xkb.XKB_STATE_MATCH_ANY | xkb.XKB_STATE_MATCH_ALL
+                | xkb.XKB_STATE_MATCH_NON_EXCLUSIVE),
             "StateMatch.XKB_STATE_MATCH_NON_EXCLUSIVE"
             "|XKB_STATE_MATCH_ALL"
             "|XKB_STATE_MATCH_ANY")
@@ -246,7 +248,7 @@ class TestBitEnum(TestCase):
 class TestKeyboardState(TestCase):
     capslock = 66
     space = 65
-    
+
     @classmethod
     def setUpClass(cls):
         cls._ctx = xkb.Context()
@@ -313,7 +315,7 @@ class TestKeyboardState(TestCase):
         self.assertEqual(
             slave_state.mod_name_is_active("Lock", xkb.XKB_STATE_MODS_LOCKED),
             True)
-        
+
     def test_state_key_get_syms(self):
         state = self.km.state_new()
         syms = state.key_get_syms(self.space)
@@ -323,7 +325,7 @@ class TestKeyboardState(TestCase):
         state = self.km.state_new()
         self.assertEqual(state.key_get_string(self.capslock), "")
         self.assertEqual(state.key_get_string(self.space), " ")
-        
+
     def test_state_key_get_one_sym(self):
         state = self.km.state_new()
         self.assertEqual(state.key_get_one_sym(self.capslock), 65509)
@@ -372,7 +374,7 @@ class TestKeyboardState(TestCase):
         state.update_key(self.capslock, xkb.XKB_KEY_UP)
         self.assertTrue(
             state.mod_index_is_active(self.lock, xkb.XKB_STATE_MODS_LOCKED))
-        
+
     def test_state_mod_index_is_active_fail(self):
         state = self.km.state_new()
         with self.assertRaises(xkb.XKBInvalidModifierIndex):
