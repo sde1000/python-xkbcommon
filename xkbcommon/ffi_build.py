@@ -87,6 +87,9 @@ xkb_keysym_to_utf8(xkb_keysym_t keysym, char *buffer, size_t size);
 uint32_t
 xkb_keysym_to_utf32(xkb_keysym_t keysym);
 
+xkb_keysym_t
+xkb_utf32_to_keysym(uint32_t ucs);
+
 enum xkb_context_flags {
     XKB_CONTEXT_NO_FLAGS = ...,
     XKB_CONTEXT_NO_DEFAULT_INCLUDES = ...,
@@ -207,6 +210,12 @@ void
 xkb_keymap_key_for_each(struct xkb_keymap *keymap, xkb_keymap_key_iter_t iter,
                         void *data);
 
+xkb_keycode_t
+xkb_keymap_key_by_name(struct xkb_keymap *keymap, const char *name);
+
+const char *
+xkb_keymap_key_get_name(struct xkb_keymap *keymap, xkb_keycode_t key);
+
 xkb_mod_index_t
 xkb_keymap_num_mods(struct xkb_keymap *keymap);
 
@@ -240,6 +249,14 @@ xkb_keymap_num_layouts_for_key(struct xkb_keymap *keymap, xkb_keycode_t key);
 xkb_level_index_t
 xkb_keymap_num_levels_for_key(struct xkb_keymap *keymap, xkb_keycode_t key,
                               xkb_layout_index_t layout);
+
+size_t
+xkb_keymap_key_get_mods_for_level(struct xkb_keymap *keymap,
+                                  xkb_keycode_t key,
+                                  xkb_layout_index_t layout,
+                                  xkb_level_index_t level,
+                                  xkb_mod_mask_t *masks_out,
+                                  size_t masks_size);
 
 int
 xkb_keymap_key_get_syms_by_level(struct xkb_keymap *keymap,
@@ -348,6 +365,17 @@ xkb_state_mod_indices_are_active(struct xkb_state *state,
                                  enum xkb_state_match match,
                                  ...);
 
+enum xkb_consumed_mode {
+XKB_CONSUMED_MODE_XKB = ...,
+XKB_CONSUMED_MODE_GTK = ...
+};
+
+int
+xkb_state_mod_index_is_consumed2(struct xkb_state *state,
+                                 xkb_keycode_t key,
+                                 xkb_mod_index_t idx,
+                                 enum xkb_consumed_mode mode);
+
 int
 xkb_state_mod_index_is_consumed(struct xkb_state *state, xkb_keycode_t key,
                                 xkb_mod_index_t idx);
@@ -355,6 +383,10 @@ xkb_state_mod_index_is_consumed(struct xkb_state *state, xkb_keycode_t key,
 xkb_mod_mask_t
 xkb_state_mod_mask_remove_consumed(struct xkb_state *state, xkb_keycode_t key,
                                    xkb_mod_mask_t mask);
+
+xkb_mod_mask_t
+xkb_state_key_get_consumed_mods2(struct xkb_state *state, xkb_keycode_t key,
+                                 enum xkb_consumed_mode mode);
 
 xkb_mod_mask_t
 xkb_state_key_get_consumed_mods(struct xkb_state *state, xkb_keycode_t key);
