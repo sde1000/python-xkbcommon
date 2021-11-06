@@ -112,6 +112,12 @@ def keysym_to_string(keysym):
         return
     return ffi.string(buffer).decode('utf8')
 
+def keysym_to_utf32(keysym):
+    return lib.xkb_keysym_to_utf32(keysym)
+
+def utf32_to_keysym(utf32_code):
+    return lib.xkb_utf32_to_keysym(utf32_code)
+
 # Library Context http://xkbcommon.org/doc/current/group__context.html
 
 class Context:
@@ -424,6 +430,21 @@ class Keymap:
             self._keymap, lib._key_for_each_helper, keycode_ref)
         self._valid_keycodes = keycodes
 
+
+    def key_by_name(self, keyname: str):
+        """Get keycode from keyname in suggested keymap"""
+        return lib.xkb_keymap_key_by_name(self._keymap, keyname.encode("ascii"))
+
+    def key_get_name(self, keycode: int):
+        """Get keyname from keycode in suggested keymap.
+        Usefull, when you need to make multilanguage bindings."""
+        r = lib.xkb_keymap_key_get_name(self._keymap, keycode)
+        if r == ffi.NULL:
+            return None
+        else:
+            return ffi.string(r).decode("ascii")
+
+
     def __iter__(self):
         """Iterate over valid keycodes"""
         if self._valid_keycodes is None:
@@ -555,6 +576,9 @@ class Keymap:
         for i in range(0, r):
             syms.append(syms_out[0][i])
         return syms
+
+    def key_get_mods_for_level(self, key, layout, level):
+        raise NotImplementedError("Still not implemented")
 
     def key_repeats(self, key):
         """Determine whether a key should repeat or not.
