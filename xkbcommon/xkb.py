@@ -640,7 +640,7 @@ class KeyboardState:
         released.
 
         This entry point is intended for programs which track the
-        keyboard state explictly (like an evdev client). If the state
+        keyboard state explicitly (like an evdev client). If the state
         is serialized to you by a master process (like a Wayland
         compositor) using functions like KeyboardState.serialize_mods(),
         you should use KeyboardState.update_mask() instead. The two
