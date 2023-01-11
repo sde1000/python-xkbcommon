@@ -66,6 +66,18 @@ class XKBInvalidModifierIndex(XKBError):
     pass
 
 
+class XKBInvalidKeycode(XKBError):
+    pass
+
+
+class XKBKeyDoesNotExist(XKBError):
+    """A given key name does not exist.
+    """
+    def __init__(self, key_name):
+        super().__init__(key_name)
+        self.key_name = key_name
+
+
 class XKBModifierDoesNotExist(XKBError):
     """A given modifier name does not exist.
 
@@ -467,6 +479,18 @@ class Keymap:
         if self._valid_keycodes is None:
             self._get_valid_keycodes()
         return iter(self._valid_keycodes)
+
+    def key_get_name(self, key):
+        r = lib.xkb_keymap_key_get_name(self._keymap, key)
+        if r == ffi.NULL:
+            raise XKBInvalidKeycode
+        return ffi.string(r).decode('ascii')
+
+    def key_by_name(self, name):
+        r = lib.xkb_keymap_key_by_name(self._keymap, name.encode('ascii'))
+        if r == lib.XKB_KEYCODE_INVALID:
+            raise XKBKeyDoesNotExist(name)
+        return r
 
     def num_mods(self):
         """Get the number of modifiers in the keymap."""

@@ -155,6 +155,25 @@ class TestKeymap(TestCase):
     def test_keymap_iterate_over_keycodes(self):
         self.assertEqual(len(list(self.km)), 245)
 
+    def test_keymap_key_names_roundtrip(self):
+        # Test both key_get_name() and key_by_name()
+        for keycode in iter(self.km):
+            try:
+                name = self.km.key_get_name(keycode)
+                self.assertEqual(self.km.key_by_name(name), keycode)
+            except xkb.XKBInvalidKeycode:
+                pass
+
+    def test_keymap_key_get_name_invalid(self):
+        # Keycode 93 does not exist in our sample keymap
+        with self.assertRaises(xkb.XKBInvalidKeycode):
+            self.km.key_get_name(93)
+
+    def test_keymap_key_by_name_invalid(self):
+        # Keycode 'WIBL' does not exist in our sample keymap
+        with self.assertRaises(xkb.XKBKeyDoesNotExist):
+            self.km.key_by_name("WIBL")
+
     def test_keymap_num_mods(self):
         self.assertEqual(self.km.num_mods(), 21)
 
