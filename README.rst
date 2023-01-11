@@ -19,5 +19,16 @@ False
 >>> state.led_name_is_active("Caps Lock")
 True
 
-.. _libxkbcommon: http://xkbcommon.org/
+Version numbering
+-----------------
+
+From release 0.5 onwards, the version numbering of this package will
+relate to releases of libxkbcommon_ as follows:
+
+If the Python package version is major.minor[.patch] then it requires
+at least release major.minor.0 of libxkbcommon to build and run, and
+should work with any subsequent release. The patch version of the
+Python package is unrelated to the patch version of libxkbcommon.
+
+.. _libxkbcommon: https://xkbcommon.org/
 .. _cffi: https://pypi.python.org/pypi/cffi
