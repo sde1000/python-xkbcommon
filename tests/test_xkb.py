@@ -20,6 +20,25 @@ nonexistent = os.path.join(testdir, "must-not-exist")
 testfile = os.path.abspath(__file__)
 
 
+class TestKeysym(TestCase):
+    def test_keysym_get_name(self):
+        self.assertEqual(xkb.keysym_get_name(0xff68), "Find")
+
+    def test_keysym_from_name(self):
+        self.assertEqual(xkb.keysym_from_name("space"), 0x20)
+
+    def test_keysym_to_string(self):
+        self.assertEqual(xkb.keysym_to_string(0x20), ' ')
+
+    def test_keysym_to_upper(self):
+        # Lower case to upper case A
+        self.assertEqual(xkb.keysym_to_upper(0x61), 0x41)
+
+    def test_keysym_to_lower(self):
+        # Upper case to lower case A
+        self.assertEqual(xkb.keysym_to_lower(0x41), 0x61)
+
+
 class TestContext(TestCase):
     @classmethod
     def setUpClass(cls):

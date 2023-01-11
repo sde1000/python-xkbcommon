@@ -160,6 +160,26 @@ def keysym_to_string(keysym):
     return ffi.string(buffer).decode('utf8')
 
 
+def keysym_to_upper(keysym):
+    """Convert a keysym to its uppercase form.
+
+    If there is no such form, the keysym is returned unchanged.
+
+    The conversion rules may be incomplete; prefer to work with the
+    Unicode representation instead, when possible.
+    """
+    return lib.xkb_keysym_to_upper(keysym)
+
+
+def keysym_to_lower(keysym):
+    """Convert a keysym to its lowercase form.
+
+    The conversion rules may be incomplete; prefer to work with the
+    Unicode representation instead, when possible.
+    """
+    return lib.xkb_keysym_to_lower(keysym)
+
+
 # Library Context http://xkbcommon.org/doc/current/group__context.html
 
 class Context:

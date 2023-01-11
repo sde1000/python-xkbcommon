@@ -87,6 +87,12 @@ xkb_keysym_to_utf8(xkb_keysym_t keysym, char *buffer, size_t size);
 uint32_t
 xkb_keysym_to_utf32(xkb_keysym_t keysym);
 
+xkb_keysym_t
+xkb_keysym_to_upper(xkb_keysym_t ks);
+
+xkb_keysym_t
+xkb_keysym_to_lower(xkb_keysym_t ks);
+
 enum xkb_context_flags {
     XKB_CONTEXT_NO_FLAGS = ...,
     XKB_CONTEXT_NO_DEFAULT_INCLUDES = ...,
