@@ -1,5 +1,6 @@
 import enum
 import mmap
+import sys
 
 from xkbcommon._ffi import ffi, lib
 
@@ -11,6 +12,21 @@ class _keepref:
 
     def __call__(self, *args, **kwargs):
         self.func(*args, **kwargs)
+
+
+# enum.IntFlag was changed in a non-backward-compatible manner in
+# Python 3.11: the __str__ method was changed to int.__str__(). We
+# retain the old behaviour because it is useful, and in order not to
+# surprise existing users of python-xkbcommon
+
+if sys.version_info < (3, 11):
+    _IntFlag = enum.IntFlag
+else:
+    class _IntFlag(int, enum.Flag, boundary=enum.KEEP):
+        """IntFlag implementation that retains the pre-python-3.11 behaviour
+        """
+        pass
+
 
 class XKBError(Exception):
     """Base for all XKB exceptions"""
@@ -594,7 +610,7 @@ XKB_KEY_DOWN = KeyDirection.XKB_KEY_DOWN
 
 
 @enum.unique
-class StateComponent(enum.IntFlag):
+class StateComponent(_IntFlag):
     "An integer corresponding to enum xkb_state_component"
     XKB_STATE_MODS_DEPRESSED = lib.XKB_STATE_MODS_DEPRESSED
     XKB_STATE_MODS_LATCHED = lib.XKB_STATE_MODS_LATCHED
@@ -606,11 +622,12 @@ class StateComponent(enum.IntFlag):
     XKB_STATE_LAYOUT_EFFECTIVE = lib.XKB_STATE_LAYOUT_EFFECTIVE
     XKB_STATE_LEDS = lib.XKB_STATE_LEDS
 
+
 for _sc in StateComponent:
     globals()[_sc.name] = _sc
 
 @enum.unique
-class StateMatch(enum.IntFlag):
+class StateMatch(_IntFlag):
     "An integer corresponding to enum xkb_state_match"
     XKB_STATE_MATCH_ANY = lib.XKB_STATE_MATCH_ANY
     XKB_STATE_MATCH_ALL = lib.XKB_STATE_MATCH_ALL
