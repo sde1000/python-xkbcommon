@@ -13,9 +13,9 @@ Example usage:
 False
 >>> capslock = 66
 >>> str(state.update_key(capslock, xkb.XKB_KEY_DOWN))
-'XKB_STATE_MODS_DEPRESSED|XKB_STATE_MODS_LOCKED|XKB_STATE_MODS_EFFECTIVE|XKB_STATE_LEDS'
+'StateComponent.XKB_STATE_MODS_DEPRESSED|XKB_STATE_MODS_LOCKED|XKB_STATE_MODS_EFFECTIVE|XKB_STATE_LEDS'
 >>> str(state.update_key(capslock, xkb.XKB_KEY_UP))
-'XKB_STATE_MODS_DEPRESSED'
+'StateComponent.XKB_STATE_MODS_DEPRESSED'
 >>> state.led_name_is_active("Caps Lock")
 True
 

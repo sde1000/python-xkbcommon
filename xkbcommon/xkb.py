@@ -4,6 +4,7 @@ import sys
 
 from xkbcommon._ffi import ffi, lib
 
+
 class _keepref:
     """Function wrapper that keeps a reference to another object."""
     def __init__(self, ref, func):
@@ -32,9 +33,11 @@ class XKBError(Exception):
     """Base for all XKB exceptions"""
     pass
 
+
 class XKBPathError(Exception):
     """There was a problem altering the include path of a Context."""
     pass
+
 
 class XKBBufferTooSmall(XKBError):
     """A buffer created for libxkbcommon to return data in was too small.
@@ -44,19 +47,24 @@ class XKBBufferTooSmall(XKBError):
     """
     pass
 
+
 class XKBInvalidKeysym(XKBError):
     pass
+
 
 class XKBKeymapCreationFailure(XKBError):
     """Unable to create a keymap."""
     pass
 
+
 class XKBKeymapReadError(XKBError):
     """Unable to fetch a keymap as a string."""
     pass
 
+
 class XKBInvalidModifierIndex(XKBError):
     pass
+
 
 class XKBModifierDoesNotExist(XKBError):
     """A given modifier name does not exist.
@@ -69,36 +77,45 @@ class XKBModifierDoesNotExist(XKBError):
         super().__init__(modifier_name)
         self.modifier_name = modifier_name
 
+
 class XKBInvalidLayoutIndex(XKBError):
     pass
+
 
 class XKBLayoutDoesNotExist(XKBError):
     def __init__(self, index_name):
         super().__init__(index_name)
         self.index_name = index_name
 
+
 class XKBInvalidLEDIndex(XKBError):
     pass
+
 
 class XKBLEDDoesNotExist(XKBError):
     def __init__(self, led_name):
         super().__init__(led_name)
         self.led_name = led_name
 
+
 # Internal helper for logging callback
 def _onerror_do_nothing(exception, exc_value, traceback):
     return
+
+
 @ffi.def_extern(onerror=_onerror_do_nothing)
 def _log_handler(user_data, level, message):
     context = ffi.from_handle(user_data)
     if context._log_fn:
         context._log_fn(context, level, ffi.string(message).decode('utf8'))
 
+
 # Internal helper for keycode iteration
 @ffi.def_extern(onerror=_onerror_do_nothing)
 def _key_for_each_helper(keymap, key, data):
-    l = ffi.from_handle(data)
-    l.append(key)
+    k = ffi.from_handle(data)
+    k.append(key)
+
 
 # Keysyms http://xkbcommon.org/doc/current/group__keysyms.html
 
@@ -112,12 +129,14 @@ def keysym_get_name(keysym):
         raise XKBBufferTooSmall()
     return ffi.string(name).decode('ascii')
 
+
 def keysym_from_name(name, case_insensitive=False):
     "Get a keysym from its name."
     flags = 0
     if case_insensitive:
         flags = flags | lib.XKB_KEYSYM_CASE_INSENSITIVE
     return lib.xkb_keysym_from_name(name.encode('ascii'), flags)
+
 
 def keysym_to_string(keysym):
     buffer = ffi.new("char[64]")
@@ -127,6 +146,7 @@ def keysym_to_string(keysym):
     if r == 0:
         return
     return ffi.string(buffer).decode('utf8')
+
 
 # Library Context http://xkbcommon.org/doc/current/group__context.html
 
@@ -335,7 +355,7 @@ class Context:
         "Create a Keymap from an open file"
         try:
             fn = file.fileno()
-        except:
+        except Exception:
             load_method = "read_file"
             keymap = file.read()
             r = lib.xkb_keymap_new_from_string(
@@ -361,7 +381,8 @@ class Context:
             self, string, format=lib.XKB_KEYMAP_FORMAT_TEXT_V1):
         "Create a Keymap from a keymap string."
         r = lib.xkb_keymap_new_from_string(
-            self._context, string.encode("ascii"), format, lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
+            self._context, string.encode("ascii"), format,
+            lib.XKB_KEYMAP_COMPILE_NO_FLAGS)
         if r == ffi.NULL:
             raise XKBKeymapCreationFailure(
                 "xkb_keymap_new_from_string returned NULL")
@@ -378,6 +399,7 @@ class Context:
             raise XKBKeymapCreationFailure(
                 "xkb_keymap_new_from_buffer returned NULL")
         return Keymap(self, r, "buffer")
+
 
 class Keymap:
     """A keymap.
@@ -626,6 +648,7 @@ class StateComponent(_IntFlag):
 for _sc in StateComponent:
     globals()[_sc.name] = _sc
 
+
 @enum.unique
 class StateMatch(_IntFlag):
     "An integer corresponding to enum xkb_state_match"
@@ -633,8 +656,10 @@ class StateMatch(_IntFlag):
     XKB_STATE_MATCH_ALL = lib.XKB_STATE_MATCH_ALL
     XKB_STATE_MATCH_NON_EXCLUSIVE = lib.XKB_STATE_MATCH_NON_EXCLUSIVE
 
+
 for _sc in StateMatch:
     globals()[_sc.name] = _sc
+
 
 class KeyboardState:
     def __init__(self, keymap):
@@ -657,7 +682,7 @@ class KeyboardState:
         released.
 
         This entry point is intended for programs which track the
-        keyboard state explictly (like an evdev client). If the state
+        keyboard state explicitly (like an evdev client). If the state
         is serialized to you by a master process (like a Wayland
         compositor) using functions like KeyboardState.serialize_mods(),
         you should use KeyboardState.update_mask() instead. The two
@@ -902,7 +927,8 @@ class KeyboardState:
         """
         args = [ffi.cast("int", x) for x in mods]
         args.append(ffi.cast("int", lib.XKB_MOD_INVALID))
-        r = lib.xkb_state_mod_indices_are_active(self._state, type, match, *args)
+        r = lib.xkb_state_mod_indices_are_active(
+            self._state, type, match, *args)
         if r == -1:
             raise XKBInvalidModifierIndex()
         return r == 1
@@ -945,7 +971,8 @@ class KeyboardState:
         If multiple layouts in the keymap have this name, the one with
         the lowest index is tested.
         """
-        r = lib.xkb_state_layout_name_is_active(self._state, name.encode(), type)
+        r = lib.xkb_state_layout_name_is_active(
+            self._state, name.encode(), type)
         if r == -1:
             raise XKBLayoutDoesNotExist(name)
         return r == 1

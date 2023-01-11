@@ -28,15 +28,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install --edit .
       - name: Lint with flake8
         run: |
-          flake8 . --count --ignore=E124,E302,E305,E722,E741,F841,W503 --show-source --statistics --max-line-length=127
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      - name: Build ffi module
-        run: |
-          python setup.py build_ext --inplace
+          flake8 xkbcommon tests
       - name: Test with pytest
         run: |
           pytest

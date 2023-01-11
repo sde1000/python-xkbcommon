@@ -19,6 +19,7 @@ nonexistent = os.path.join(testdir, "must-not-exist")
 # A file that is guaranteed to exist
 testfile = os.path.abspath(__file__)
 
+
 class TestContext(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -32,7 +33,7 @@ class TestContext(TestCase):
         cls._sample_keymap_file.close()
 
     def test_create(self):
-        ctx = xkb.Context()
+        xkb.Context()
 
     def test_default_includes(self):
         ctx = xkb.Context(no_default_includes=True)
@@ -59,7 +60,8 @@ class TestContext(TestCase):
         ctx = xkb.Context()
         default_num_include_paths = ctx.num_include_paths()
         ctx.include_path_append(testdir)
-        self.assertEqual(ctx.num_include_paths(), default_num_include_paths + 1)
+        self.assertEqual(ctx.num_include_paths(),
+                         default_num_include_paths + 1)
 
     def test_set_log_level(self):
         ctx = xkb.Context()
@@ -83,7 +85,7 @@ class TestContext(TestCase):
         ctx.set_log_level(xkb.lib.XKB_LOG_LEVEL_DEBUG)
         ctx.set_log_verbosity(10)
         ctx.set_log_fn(handler)
-        km = ctx.keymap_new_from_string(sample_keymap_string)
+        ctx.keymap_new_from_string(sample_keymap_string)
         self.assertNotEqual(len(messages), 0)
 
     def test_keymap_new_from_names_with_args(self):
@@ -130,6 +132,7 @@ class TestContext(TestCase):
         length = len(sample_keymap_bytes)
         km = ctx.keymap_new_from_buffer(test_data, length=length)
         self.assertIsNotNone(km)
+
 
 # This class makes use of the details of the sample keymap in
 # sample_keymap_string.
@@ -226,6 +229,7 @@ class TestKeymap(TestCase):
     def test_keymap_state_new(self):
         self.assertIsNotNone(self.km.state_new())
 
+
 class TestBitEnum(TestCase):
     def test_StateComponent(self):
         a = xkb.XKB_STATE_MODS_DEPRESSED
@@ -251,6 +255,7 @@ class TestBitEnum(TestCase):
             str(xkb.XKB_STATE_MATCH_ANY | xkb.XKB_STATE_MATCH_ALL),
             ("StateMatch.XKB_STATE_MATCH_ALL|XKB_STATE_MATCH_ANY",
              "StateMatch.XKB_STATE_MATCH_ANY|XKB_STATE_MATCH_ALL"))
+
 
 class TestKeyboardState(TestCase):
     capslock = 66
