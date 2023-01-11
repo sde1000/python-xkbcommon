@@ -647,17 +647,20 @@ class Keymap:
 
 @enum.unique
 class KeyDirection(enum.IntEnum):
+    "Specifies the direction of the key (press / release)"
     XKB_KEY_UP = lib.XKB_KEY_UP
     XKB_KEY_DOWN = lib.XKB_KEY_DOWN
 
 
-XKB_KEY_UP = KeyDirection.XKB_KEY_UP
-XKB_KEY_DOWN = KeyDirection.XKB_KEY_DOWN
-
-
 @enum.unique
 class StateComponent(_IntFlag):
-    "An integer corresponding to enum xkb_state_component"
+    """Modifier and layout types for state objects
+
+    This enum is bitmaskable, e.g. (XKB_STATE_MODS_DEPRESSED |
+    XKB_STATE_MODS_LATCHED) is valid to exclude locked modifiers.
+
+    In XKB, the DEPRESSED components are also known as 'base'.
+    """
     XKB_STATE_MODS_DEPRESSED = lib.XKB_STATE_MODS_DEPRESSED
     XKB_STATE_MODS_LATCHED = lib.XKB_STATE_MODS_LATCHED
     XKB_STATE_MODS_LOCKED = lib.XKB_STATE_MODS_LOCKED
@@ -669,20 +672,41 @@ class StateComponent(_IntFlag):
     XKB_STATE_LEDS = lib.XKB_STATE_LEDS
 
 
-for _sc in StateComponent:
-    globals()[_sc.name] = _sc
-
-
 @enum.unique
 class StateMatch(_IntFlag):
-    "An integer corresponding to enum xkb_state_match"
+    """State match flags
+
+    Match flags for KeyboardState.mod_indices_are_active() and
+    KeyboardState.mod_names_are_active(), specifying the conditions
+    for a successful match.
+
+    XKB_STATE_MATCH_NON_EXCLUSIVE is bitmaskable with the other modes.
+    """
     XKB_STATE_MATCH_ANY = lib.XKB_STATE_MATCH_ANY
     XKB_STATE_MATCH_ALL = lib.XKB_STATE_MATCH_ALL
     XKB_STATE_MATCH_NON_EXCLUSIVE = lib.XKB_STATE_MATCH_NON_EXCLUSIVE
 
 
-for _sc in StateMatch:
-    globals()[_sc.name] = _sc
+@enum.unique
+class ConsumedMode(enum.IntEnum):
+    """Consumed modifiers mode
+
+    There are several possible methods for deciding which modifiers
+    are consumed and which are not, each applicable for different
+    systems or situations. The mode selects the method to use.
+
+    Keep in mind that in all methods, the keymap may decide to
+    "preserve" a modifier, meaning it is not reported as consumed even
+    if it would have otherwise.
+    """
+    XKB_CONSUMED_MODE_XKB = lib.XKB_CONSUMED_MODE_XKB
+    XKB_CONSUMED_MODE_GTK = lib.XKB_CONSUMED_MODE_GTK
+
+
+# Global names for enum members
+for _ec in (KeyDirection, StateComponent, StateMatch, ConsumedMode):
+    for _sc in _ec:
+        globals()[_sc.name] = _sc
 
 
 class KeyboardState:
@@ -957,7 +981,8 @@ class KeyboardState:
             raise XKBInvalidModifierIndex()
         return r == 1
 
-    def mod_index_is_consumed(self, key, idx):
+    def mod_index_is_consumed(self, key, idx,
+                              mode=ConsumedMode.XKB_CONSUMED_MODE_XKB):
         """Test whether a modifier is consumed by keyboard state translation
         for a key.
 
@@ -965,7 +990,7 @@ class KeyboardState:
         If the modifier index is not valid in the keymap, raises
         XKBInvalidModifierIndex.
         """
-        r = lib.xkb_state_mod_index_is_consumed(self._state, key, idx)
+        r = lib.xkb_state_mod_index_is_consumed2(self._state, key, idx, mode)
         if r == -1:
             raise XKBInvalidModifierIndex()
         return r == 1
@@ -978,12 +1003,13 @@ class KeyboardState:
         """
         return lib.xkb_state_mod_mask_remove_consumed(self._state, key, mask)
 
-    def key_get_consumed_mods(self, key):
+    def key_get_consumed_mods(self, key,
+                              mode=ConsumedMode.XKB_CONSUMED_MODE_XKB):
         """Get the mask of modifiers consumed by translating a given key.
 
         Returns a mask of the consumed modifiers.
         """
-        return lib.xkb_state_key_get_consumed_mods(self._state, key)
+        return lib.xkb_state_key_get_consumed_mods2(self._state, key, mode)
 
     def layout_name_is_active(self, name, type):
         """Test whether a layout is active in a given keyboard state by name.

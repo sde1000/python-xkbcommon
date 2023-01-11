@@ -326,6 +326,11 @@ enum xkb_state_match {
     XKB_STATE_MATCH_NON_EXCLUSIVE = ...
 };
 
+enum xkb_consumed_mode {
+    XKB_CONSUMED_MODE_XKB = ...,
+    XKB_CONSUMED_MODE_GTK = ...
+};
+
 xkb_mod_mask_t
 xkb_state_serialize_mods(struct xkb_state *state,
                          enum xkb_state_component components);
@@ -355,12 +360,21 @@ xkb_state_mod_indices_are_active(struct xkb_state *state,
                                  ...);
 
 int
+xkb_state_mod_index_is_consumed2(struct xkb_state *state, xkb_keycode_t key,
+                                 xkb_mod_index_t idx,
+                                 enum xkb_consumed_mode mode);
+
+int
 xkb_state_mod_index_is_consumed(struct xkb_state *state, xkb_keycode_t key,
                                 xkb_mod_index_t idx);
 
 xkb_mod_mask_t
 xkb_state_mod_mask_remove_consumed(struct xkb_state *state, xkb_keycode_t key,
                                    xkb_mod_mask_t mask);
+
+xkb_mod_mask_t
+xkb_state_key_get_consumed_mods2(struct xkb_state *state, xkb_keycode_t key,
+                                 enum xkb_consumed_mode mode);
 
 xkb_mod_mask_t
 xkb_state_key_get_consumed_mods(struct xkb_state *state, xkb_keycode_t key);
