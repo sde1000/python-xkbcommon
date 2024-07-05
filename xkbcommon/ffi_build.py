@@ -1,7 +1,7 @@
 from cffi import FFI
 ffibuilder = FFI()
 
-# Currently implemented with reference to libxkbcommon-1.0.0
+# Currently implemented with reference to libxkbcommon-1.5.0
 
 ffibuilder.set_source("xkbcommon._ffi", """
 #include <stdarg.h>
@@ -96,7 +96,8 @@ xkb_keysym_to_lower(xkb_keysym_t ks);
 enum xkb_context_flags {
     XKB_CONTEXT_NO_FLAGS = ...,
     XKB_CONTEXT_NO_DEFAULT_INCLUDES = ...,
-    XKB_CONTEXT_NO_ENVIRONMENT_NAMES = ...
+    XKB_CONTEXT_NO_ENVIRONMENT_NAMES = ...,
+    XKB_CONTEXT_NO_SECURE_GETENV = ...
 };
 
 struct xkb_context *

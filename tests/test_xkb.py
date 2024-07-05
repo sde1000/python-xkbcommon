@@ -59,6 +59,13 @@ class TestContext(TestCase):
     def test_create(self):
         xkb.Context()
 
+    def test_no_secure_getenv(self):
+        # We are unlikely to be testing in an environment where
+        # secure_getenv() will return NULL instead of a value string,
+        # so just check that we are able to create a context with this
+        # flag set
+        xkb.Context(no_secure_getenv=True)
+
     def test_default_includes(self):
         ctx = xkb.Context(no_default_includes=True)
         self.assertEqual(len(list(ctx.include_path())), 0)

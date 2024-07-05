@@ -229,7 +229,8 @@ class Context:
     XKB_DEFAULT_OPTIONS - see xkb_rule_names.
     """
 
-    def __init__(self, no_default_includes=False, no_environment_names=False):
+    def __init__(self, no_default_includes=False, no_environment_names=False,
+                 no_secure_getenv=False):
         """Create a new context.
 
         Keyword arguments:
@@ -239,12 +240,17 @@ class Context:
 
         no_environment_names: if set, don't take RMLVO names from the
         environment.
+
+        no_secure_getenv: if set, use getenv() instead of
+        secure_getenv() to obtain environment variables.
         """
         flags = lib.XKB_CONTEXT_NO_FLAGS
         if no_default_includes:
             flags = flags | lib.XKB_CONTEXT_NO_DEFAULT_INCLUDES
         if no_environment_names:
             flags = flags | lib.XKB_CONTEXT_NO_ENVIRONMENT_NAMES
+        if no_secure_getenv:
+            flags = flags | lib.XKB_CONTEXT_NO_SECURE_GETENV
         context = lib.xkb_context_new(flags)
         if not context:
             raise XKBError("Couldn't create XKB context")
