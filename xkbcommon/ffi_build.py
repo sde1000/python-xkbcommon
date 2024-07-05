@@ -1,7 +1,7 @@
 from cffi import FFI
 ffibuilder = FFI()
 
-# Currently implemented with reference to libxkbcommon-1.5.0
+# Currently implemented with reference to libxkbcommon-1.6.0
 
 ffibuilder.set_source("xkbcommon._ffi", """
 #include <stdarg.h>
@@ -442,6 +442,29 @@ xkb_compose_table_ref(struct xkb_compose_table *table);
 
 void
 xkb_compose_table_unref(struct xkb_compose_table *table);
+
+struct xkb_compose_table_entry;
+
+const xkb_keysym_t *
+xkb_compose_table_entry_sequence(struct xkb_compose_table_entry *entry,
+                                 size_t *sequence_length);
+
+xkb_keysym_t
+xkb_compose_table_entry_keysym(struct xkb_compose_table_entry *entry);
+
+const char *
+xkb_compose_table_entry_utf8(struct xkb_compose_table_entry *entry);
+
+struct xkb_compose_table_iterator;
+
+struct xkb_compose_table_iterator *
+xkb_compose_table_iterator_new(struct xkb_compose_table *table);
+
+void
+xkb_compose_table_iterator_free(struct xkb_compose_table_iterator *iter);
+
+struct xkb_compose_table_entry *
+xkb_compose_table_iterator_next(struct xkb_compose_table_iterator *iter);
 
 enum xkb_compose_state_flags {
     XKB_COMPOSE_STATE_NO_FLAGS = ...

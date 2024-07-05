@@ -1,6 +1,8 @@
 import enum
 import mmap
 import sys
+from dataclasses import dataclass
+from typing import Tuple
 
 from xkbcommon._ffi import ffi, lib
 
@@ -112,6 +114,11 @@ class XKBLEDDoesNotExist(XKBError):
 
 class XKBComposeTableCreationFailure(XKBError):
     """Unable to create a compose table."""
+    pass
+
+
+class XKBComposeTableIteratorCreationFailure(XKBError):
+    """Unable to create a compose table iterator."""
     pass
 
 
@@ -1266,8 +1273,29 @@ class ComposeTable:
         self._table = ffi.gc(
             pointer, _keepref(lib, lib.xkb_compose_table_unref))
 
-    # Methods to access and iterate over the compose table will be
-    # added for release 1.6
+    def __iter__(self):
+        local_lib = lib
+        iterator = local_lib.xkb_compose_table_iterator_new(self._table)
+        if not iterator:
+            raise XKBComposeTableIteratorCreationFailure()
+        # This allocates a single size_t
+        sequence_length_ptr = ffi.new("size_t *")
+        try:
+            while True:
+                entry = local_lib.xkb_compose_table_iterator_next(iterator)
+                if entry == ffi.NULL:
+                    return
+                sequence = local_lib.xkb_compose_table_entry_sequence(
+                    entry, sequence_length_ptr)
+                keysym = local_lib.xkb_compose_table_entry_keysym(entry)
+                utf8 = local_lib.xkb_compose_table_entry_utf8(entry)
+                yield ComposeTableEntry(
+                    sequence=tuple(sequence[0:sequence_length_ptr[0]]),
+                    keysym=keysym,
+                    string=ffi.string(utf8).decode('utf8'))
+        finally:
+            del sequence_length_ptr
+            local_lib.xkb_compose_table_iterator_free(iterator)
 
     def compose_state_new(self, flags=None):
         pointer = lib.xkb_compose_state_new(self._table, flags if flags else 0)
@@ -1275,6 +1303,29 @@ class ComposeTable:
             raise XKBComposeStateCreationFailure(
                 "Couldn't create compose state")
         return ComposeState(self, pointer)
+
+
+@dataclass
+class ComposeTableEntry:
+    """A Compose table entry
+
+    Enables access to the left-hand keysym sequence, right-hand result
+    keysym and right-hand result string of a compose table entry.
+
+    Do not instantiate this object directly. Instead, obtain a compose
+    table iterator by calling iter() on a ComposeTable; the iterator
+    will yield ComposeTableEntry instances
+    """
+    sequence: Tuple[int]
+    keysym: int
+    string: str
+
+    # Someone reading the libxkbcommon documentation may expect the
+    # right hand result string to be called "utf8". This is just an
+    # alias.
+    @property
+    def utf8(self):
+        return self.string
 
 
 class ComposeState:
@@ -1365,6 +1416,19 @@ class ComposeState:
         buffer = ffi.new(f"char[{buffer_size}]")
         lib.xkb_compose_state_get_utf8(self._state, buffer, buffer_size)
         return ffi.string(buffer).decode("utf8")
+
+    # This is an alias for get_utf8() — the name is more logical but
+    # may be unexpected to somebody just reading the libxkbcommon
+    # documentation
+    def get_string(self):
+        """Get the result string for a compose sequence.
+
+        This function is only useful when the status is
+        ComposeStatus.XKB_COMPOSE_COMPOSED.
+
+        Returns string for composed sequence or empty string if not viable.
+        """
+        return self.get_utf8()
 
     def get_one_sym(self):
         """Get the result keysym for a composed sequence.

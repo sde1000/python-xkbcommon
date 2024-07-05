@@ -598,9 +598,25 @@ class TestCompose(TestCase):
     @classmethod
     def setUpClass(cls):
         ctx = xkb.Context()
-        ct = ctx.compose_table_new_from_buffer(
+        cls.ct = ctx.compose_table_new_from_buffer(
             sample_compose_bytes, "en_US.UTF-8")
-        cls.compose = ct.compose_state_new()
+        cls.compose = cls.ct.compose_state_new()
+
+    def test_compose_table_iterator(self):
+        # Our sample compose table has 5125 entries
+        self.assertEqual(len(list(self.ct)), 5125)
+
+        # Check that we can find the compose sequence DEAD_TILDE,
+        # DEAD_HORN, O and its results
+        seq = (self.XKB_KEYSYM_DEAD_TILDE, self.XKB_KEYSYM_DEAD_HORN,
+               self.XKB_KEYSYM_O)
+        for te in self.ct:
+            if te.sequence == seq:
+                self.assertEqual(te.keysym, self.XKB_KEYSYM_OHORNTILDE)
+                self.assertEqual(te.utf8, self.UTF8_OHORNTILDE)
+                break
+        else:
+            self.fail("Did not find test sequence in compose table")
 
     def test_compose_initial_status(self):
         self.compose.reset()
