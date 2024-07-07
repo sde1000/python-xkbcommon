@@ -30,5 +30,16 @@ at least release major.minor.0 of libxkbcommon to build and run, and
 should work with any subsequent release. The patch version of the
 Python package is unrelated to the patch version of libxkbcommon.
 
+In practice this means that **you should always specify a maximum
+version when depending on xkbcommon**.
+
+* Most users should specify ``xkbcommon<1.1``
+
+* If you need to use ``xkb.Context(no_secure_getenv=True)`` then
+  specify ``xkbcommon<1.6``
+
+* If you need to iterate over an ``xkb.ComposeTable`` instance then
+  specify ``xkbcommon<1.7``
+
 .. _libxkbcommon: https://xkbcommon.org/
 .. _cffi: https://pypi.python.org/pypi/cffi
